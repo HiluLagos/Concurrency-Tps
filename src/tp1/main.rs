@@ -1,5 +1,6 @@
 use std::{
     io::{prelude::*, BufReader},
+    time::{Instant},
     net::{TcpListener, TcpStream},
 };
 
@@ -19,6 +20,7 @@ fn main() {
 // Method works with large numbers. Very important to use u128!
 
 fn handle_connection(mut stream: TcpStream) {
+
     let buf_reader = BufReader::new(&stream);
     let request_line = buf_reader.lines().next().unwrap().unwrap();
 
@@ -38,9 +40,13 @@ fn handle_connection(mut stream: TcpStream) {
             // Parses value and if successfully continues inside if
             let parsed_result = argument.parse::<u128>();
             if let Ok(i) = parsed_result {
+                // now and elapsed variables are used to calculate time passed
+                let now = Instant::now();
                 let result = calculate_pi(i);
+                let elapsed = now.elapsed().as_secs_f64();
+
                 println!("Pi to {i} terms of Leibniz is: {result}");
-                let response = format!("HTTP/1.1 200 OK\r\n\r\nPi to {i} terms of Liebniz is: {result}");
+                let response = format!("HTTP/1.1 200 OK\r\n\r\nPi to {i} terms of Liebniz is: {result} calculated in {elapsed} seconds");
                 stream.write_all(response.as_bytes()).unwrap();
             } else {
                 let response = format!("HTTP/1.1 400 Bad Request\r\n\r\nInvalid argument: {argument}");
